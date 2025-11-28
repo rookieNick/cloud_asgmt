@@ -25,6 +25,51 @@
 
       <div id="status" class="alert" hidden></div>
 
+      <!-- Search and Filter Section -->
+      <div class="search-filter-container">
+        <div class="search-box-wrapper">
+          <input 
+            type="text" 
+            id="global-search" 
+            class="search-box" 
+            placeholder="🔍 Search students by name, email, city..." 
+          />
+        </div>
+        
+        <div class="filters-toggle">
+          <button id="filters-toggle-btn" class="button ghost" type="button">⚙️ Filters</button>
+        </div>
+      </div>
+
+      <!-- Column Filters (Hidden by default) -->
+      <div id="filters-panel" class="filters-panel" hidden>
+        <div class="filters-grid">
+          <div class="filter-item">
+            <label for="filter-name">Name</label>
+            <input type="text" id="filter-name" class="filter-input" placeholder="Filter by name...">
+          </div>
+          <div class="filter-item">
+            <label for="filter-email">Email</label>
+            <input type="text" id="filter-email" class="filter-input" placeholder="Filter by email...">
+          </div>
+          <div class="filter-item">
+            <label for="filter-city">City</label>
+            <input type="text" id="filter-city" class="filter-input" placeholder="Filter by city...">
+          </div>
+          <div class="filter-item">
+            <label for="filter-state">State</label>
+            <input type="text" id="filter-state" class="filter-input" placeholder="Filter by state...">
+          </div>
+          <div class="filter-item">
+            <label for="filter-phone">Phone</label>
+            <input type="text" id="filter-phone" class="filter-input" placeholder="Filter by phone...">
+          </div>
+        </div>
+        <div class="filters-actions">
+          <button id="clear-filters" class="button ghost" type="button">Clear All</button>
+        </div>
+      </div>
+
       <div class="table-responsive">
         <table class="data-table">
           <thead>
@@ -47,52 +92,56 @@
         </table>
       </div>
     </section>
-
-    <section class="card">
-      <header class="card-header">
-        <div>
-          <p class="eyebrow">Form</p>
-          <h2 id="form-title">Add Student</h2>
-        </div>
-      </header>
-
-      <form id="student-form" class="stacked-form" autocomplete="off">
-        <input type="hidden" id="student-id" />
-        <label>
-          Name
-          <input id="name" name="name" type="text" required />
-        </label>
-        <label>
-          Address
-          <input id="address" name="address" type="text" required />
-        </label>
-        <label>
-          City
-          <input id="city" name="city" type="text" required />
-        </label>
-        <label>
-          State
-          <input id="state" name="state" type="text" required />
-        </label>
-        <label>
-          Email
-          <input id="email" name="email" type="email" required />
-        </label>
-        <label>
-          Phone
-          <input id="phone" name="phone" type="text" required />
-        </label>
-        <div class="form-actions">
-          <button id="cancel-edit" class="button ghost" type="button" hidden>Cancel</button>
-          <button id="submit-btn" class="button primary" type="submit">Add Student</button>
-        </div>
-      </form>
-    </section>
   </main>
 
-  <footer class="footer">
-    <p>Node.js + MySQL demo (HTML only)</p>
-  </footer>
+  <!-- Modal Overlay -->
+  <div id="modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <section class="card modal-card">
+        <button id="close-modal" class="close-modal-btn">&times;</button>
+        <header class="card-header">
+          <div>
+            <p class="eyebrow">Form</p>
+            <h2 id="form-title">Add Student</h2>
+          </div>
+        </header>
+
+        <form id="student-form" class="stacked-form" autocomplete="off">
+          <input type="hidden" id="student-id" />
+          <label>
+            Name
+            <input id="name" name="name" type="text" required />
+          </label>
+          <label>
+            Address
+            <input id="address" name="address" type="text" required />
+          </label>
+          <label>
+            City
+            <input id="city" name="city" type="text" required />
+          </label>
+          <label>
+            State
+            <input id="state" name="state" type="text" required />
+          </label>
+          <label>
+            Email
+            <input id="email" name="email" type="email" required />
+          </label>
+          <label>
+            Phone
+            <input id="phone" name="phone" type="text" required />
+          </label>
+          <div class="form-actions">
+            <button id="cancel-edit" class="button ghost" type="button">Cancel</button>
+            <button id="submit-btn" class="button primary" type="submit">Add Student</button>
+          </div>
+        </form>
+      </section>
+    </div>
+  </div>
+
+
 
   <script>
     const statusEl = document.getElementById('status');
@@ -103,8 +152,22 @@
     const addNewBtn = document.getElementById('add-new');
     const tableBody = document.getElementById('students-body');
     const studentIdInput = document.getElementById('student-id');
+    
+    // Modal elements
+    const modalOverlay = document.getElementById('modal-overlay');
+    const closeModalBtn = document.getElementById('close-modal');
+    
+    // Search and filter elements
+    const globalSearchInput = document.getElementById('global-search');
+    const filtersToggleBtn = document.getElementById('filters-toggle-btn');
+    const filtersPanel = document.getElementById('filters-panel');
+    const clearFiltersBtn = document.getElementById('clear-filters');
+    const filterInputs = document.querySelectorAll('.filter-input');
 
     const fields = ['name', 'address', 'city', 'state', 'email', 'phone'];
+    
+    // Store all students for filtering
+    let allStudents = [];
 
     const setStatus = (message, type = 'success') => {
       statusEl.textContent = message;
@@ -115,12 +178,23 @@
       }, 2600);
     };
 
+    // Modal Logic
+    const openModal = () => {
+      modalOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden'; // Prevent background scrolling
+    };
+
+    const closeModal = () => {
+      modalOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+      resetForm();
+    };
+
     const resetForm = () => {
       form.reset();
       studentIdInput.value = '';
       formTitle.textContent = 'Add Student';
       submitBtn.textContent = 'Add Student';
-      cancelEditBtn.hidden = true;
     };
 
     const startEdit = (student) => {
@@ -130,13 +204,51 @@
       studentIdInput.value = student.id;
       formTitle.textContent = 'Edit Student';
       submitBtn.textContent = 'Update Student';
-      cancelEditBtn.hidden = false;
-      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+      openModal();
+    };
+
+    // Filtering Logic
+    const getFilterValues = () => {
+      return {
+        global: globalSearchInput.value.toLowerCase().trim(),
+        name: document.getElementById('filter-name').value.toLowerCase().trim(),
+        email: document.getElementById('filter-email').value.toLowerCase().trim(),
+        city: document.getElementById('filter-city').value.toLowerCase().trim(),
+        state: document.getElementById('filter-state').value.toLowerCase().trim(),
+        phone: document.getElementById('filter-phone').value.toLowerCase().trim()
+      };
+    };
+
+    const filterStudents = () => {
+      const filters = getFilterValues();
+      
+      const filtered = allStudents.filter(student => {
+        // Global search - searches across name, email, city
+        if (filters.global) {
+          const matchesGlobal = 
+            student.name.toLowerCase().includes(filters.global) ||
+            student.email.toLowerCase().includes(filters.global) ||
+            student.city.toLowerCase().includes(filters.global) ||
+            student.phone.toLowerCase().includes(filters.global);
+          if (!matchesGlobal) return false;
+        }
+
+        // Column-specific filters
+        if (filters.name && !student.name.toLowerCase().includes(filters.name)) return false;
+        if (filters.email && !student.email.toLowerCase().includes(filters.email)) return false;
+        if (filters.city && !student.city.toLowerCase().includes(filters.city)) return false;
+        if (filters.state && !student.state.toLowerCase().includes(filters.state)) return false;
+        if (filters.phone && !student.phone.toLowerCase().includes(filters.phone)) return false;
+
+        return true;
+      });
+
+      renderStudents(filtered);
     };
 
     const renderStudents = (students) => {
       if (!students.length) {
-        tableBody.innerHTML = '<tr><td colspan=\"8\">No students yet. Add one below.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8">No students found.</td></tr>';
         return;
       }
 
@@ -165,10 +277,11 @@
         const res = await fetch('/api/students');
         if (!res.ok) throw new Error('Failed to load students');
         const data = await res.json();
-        renderStudents(data);
+        allStudents = data;
+        filterStudents();
       } catch (err) {
         console.error(err);
-        tableBody.innerHTML = '<tr><td colspan=\"8\">Error loading students.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="8">Error loading students.</td></tr>';
         setStatus('Could not load students.', 'danger');
       }
     };
@@ -190,7 +303,7 @@
         if (!res.ok) throw new Error(data.error || 'Request failed');
 
         setStatus(id ? 'Student updated.' : 'Student added.');
-        resetForm();
+        closeModal();
         fetchStudents();
       } catch (err) {
         console.error(err);
@@ -198,8 +311,46 @@
       }
     });
 
-    cancelEditBtn.addEventListener('click', resetForm);
-    addNewBtn.addEventListener('click', resetForm);
+    // Event Listeners
+    addNewBtn.addEventListener('click', () => {
+      resetForm();
+      openModal();
+    });
+
+    cancelEditBtn.addEventListener('click', closeModal);
+    closeModalBtn.addEventListener('click', closeModal);
+    
+    // Close modal when clicking outside
+    modalOverlay.addEventListener('click', (e) => {
+      if (e.target === modalOverlay) {
+        closeModal();
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
+        closeModal();
+      }
+    });
+
+    // Search and filter event listeners
+    globalSearchInput.addEventListener('input', filterStudents);
+    filterInputs.forEach(input => {
+      input.addEventListener('input', filterStudents);
+    });
+
+    filtersToggleBtn.addEventListener('click', () => {
+      const isHidden = filtersPanel.hidden;
+      filtersPanel.hidden = !isHidden;
+      filtersToggleBtn.classList.toggle('active', !isHidden);
+    });
+
+    clearFiltersBtn.addEventListener('click', () => {
+      globalSearchInput.value = '';
+      filterInputs.forEach(input => input.value = '');
+      filterStudents();
+    });
 
     tableBody.addEventListener('click', async (e) => {
       const action = e.target.dataset.action;
