@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Student Manager</title>
+  <link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="brand"><a href="/">Student Manager</a></div>
+    <div class="nav-actions">
+      <button id="add-new" class="button primary" type="button">+ New Student</button>
+    </div>
+  </nav>
+
+  <main class="container">
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Dashboard</p>
+          <h1>Students</h1>
+        </div>
+      </header>
+
+      <div id="status" class="alert" hidden></div>
+
+      <div class="table-responsive">
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Address</th>
+              <th>City</th>
+              <th>State</th>
+              <th>Email</th>
+              <th>Phone</th>
+              <th class="actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody id="students-body">
+            <tr>
+              <td colspan="8">Loading...</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <header class="card-header">
+        <div>
+          <p class="eyebrow">Form</p>
+          <h2 id="form-title">Add Student</h2>
+        </div>
+      </header>
+
+      <form id="student-form" class="stacked-form" autocomplete="off">
+        <input type="hidden" id="student-id" />
+        <label>
+          Name
+          <input id="name" name="name" type="text" required />
+        </label>
+        <label>
+          Address
+          <input id="address" name="address" type="text" required />
+        </label>
+        <label>
+          City
+          <input id="city" name="city" type="text" required />
+        </label>
+        <label>
+          State
+          <input id="state" name="state" type="text" required />
+        </label>
+        <label>
+          Email
+          <input id="email" name="email" type="email" required />
+        </label>
+        <label>
+          Phone
+          <input id="phone" name="phone" type="text" required />
+        </label>
+        <div class="form-actions">
+          <button id="cancel-edit" class="button ghost" type="button" hidden>Cancel</button>
+          <button id="submit-btn" class="button primary" type="submit">Add Student</button>
+        </div>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Node.js + MySQL demo (HTML only)</p>
+  </footer>
+
+  <script>
+    const statusEl = document.getElementById('status');
+    const form = document.getElementById('student-form');
+    const formTitle = document.getElementById('form-title');
+    const submitBtn = document.getElementById('submit-btn');
+    const cancelEditBtn = document.getElementById('cancel-edit');
+    const addNewBtn = document.getElementById('add-new');
+    const tableBody = document.getElementById('students-body');
+    const studentIdInput = document.getElementById('student-id');
+
+    const fields = ['name', 'address', 'city', 'state', 'email', 'phone'];
+
+    const setStatus = (message, type = 'success') => {
+      statusEl.textContent = message;
+      statusEl.className = 'alert ' + (type === 'success' ? 'success' : 'danger');
+      statusEl.hidden = false;
+      setTimeout(() => {
+        statusEl.hidden = true;
+      }, 2600);
+    };
+
+    const resetForm = () => {
+      form.reset();
+      studentIdInput.value = '';
+      formTitle.textContent = 'Add Student';
+      submitBtn.textContent = 'Add Student';
+      cancelEditBtn.hidden = true;
+    };
+
+    const startEdit = (student) => {
+      fields.forEach((key) => {
+        document.getElementById(key).value = student[key] || '';
+      });
+      studentIdInput.value = student.id;
+      formTitle.textContent = 'Edit Student';
+      submitBtn.textContent = 'Update Student';
+      cancelEditBtn.hidden = false;
+      window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+    };
+
+    const renderStudents = (students) => {
+      if (!students.length) {
+        tableBody.innerHTML = '<tr><td colspan=\"8\">No students yet. Add one below.</td></tr>';
+        return;
+      }
+
+      tableBody.innerHTML = students
+        .map(
+          (s) => `
+            <tr>
+              <td>${s.id}</td>
+              <td>${s.name}</td>
+              <td>${s.address}</td>
+              <td>${s.city}</td>
+              <td>${s.state}</td>
+              <td>${s.email}</td>
+              <td>${s.phone}</td>
+              <td class="actions-col">
+                <button class="button ghost" data-action="edit" data-id="${s.id}">Edit</button>
+                <button class="button danger" data-action="delete" data-id="${s.id}">Delete</button>
+              </td>
+            </tr>`
+        )
+        .join('');
+    };
+
+    const fetchStudents = async () => {
+      try {
+        const res = await fetch('/api/students');
+        if (!res.ok) throw new Error('Failed to load students');
+        const data = await res.json();
+        renderStudents(data);
+      } catch (err) {
+        console.error(err);
+        tableBody.innerHTML = '<tr><td colspan=\"8\">Error loading students.</td></tr>';
+        setStatus('Could not load students.', 'danger');
+      }
+    };
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const payload = Object.fromEntries(fields.map((key) => [key, document.getElementById(key).value.trim()]));
+      const id = studentIdInput.value;
+      const url = id ? '/api/students/' + id : '/api/students';
+      const method = id ? 'PUT' : 'POST';
+
+      try {
+        const res = await fetch(url, {
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Request failed');
+
+        setStatus(id ? 'Student updated.' : 'Student added.');
+        resetForm();
+        fetchStudents();
+      } catch (err) {
+        console.error(err);
+        setStatus(err.message || 'Something went wrong.', 'danger');
+      }
+    });
+
+    cancelEditBtn.addEventListener('click', resetForm);
+    addNewBtn.addEventListener('click', resetForm);
+
+    tableBody.addEventListener('click', async (e) => {
+      const action = e.target.dataset.action;
+      const id = e.target.dataset.id;
+      if (!action || !id) return;
+
+      if (action === 'edit') {
+        // find existing data in table
+        const row = e.target.closest('tr');
+        const cells = row.querySelectorAll('td');
+        const student = {
+          id,
+          name: cells[1].textContent,
+          address: cells[2].textContent,
+          city: cells[3].textContent,
+          state: cells[4].textContent,
+          email: cells[5].textContent,
+          phone: cells[6].textContent
+        };
+        startEdit(student);
+      }
+
+      if (action === 'delete') {
+        if (!confirm('Delete this student?')) return;
+        try {
+          const res = await fetch('/api/students/' + id, { method: 'DELETE' });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Delete failed');
+          setStatus('Student deleted.');
+          fetchStudents();
+        } catch (err) {
+          console.error(err);
+          setStatus(err.message || 'Could not delete student.', 'danger');
+        }
+      }
+    });
+
+    fetchStudents();
+  </script>
+</body>
+</html>
