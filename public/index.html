@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Student Manager</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
   <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
@@ -32,12 +33,12 @@
             type="text" 
             id="global-search" 
             class="search-box" 
-            placeholder="🔍 Search students by name, email, city..." 
+            placeholder="Search students by name, email, city..." 
           />
         </div>
         
         <div class="filters-toggle">
-          <button id="filters-toggle-btn" class="button ghost" type="button">⚙️ Filters</button>
+          <button id="filters-toggle-btn" class="button ghost icon-btn" type="button"><i class="fas fa-sliders-h"></i> Filters</button>
         </div>
       </div>
 
@@ -264,8 +265,8 @@
               <td>${s.email}</td>
               <td>${s.phone}</td>
               <td class="actions-col">
-                <button class="button ghost" data-action="edit" data-id="${s.id}">Edit</button>
-                <button class="button danger" data-action="delete" data-id="${s.id}">Delete</button>
+                <button class="icon-btn edit-btn" data-action="edit" data-id="${s.id}" title="Edit"><i class="fas fa-edit"></i></button>
+                <button class="icon-btn delete-btn" data-action="delete" data-id="${s.id}" title="Delete"><i class="fas fa-trash"></i></button>
               </td>
             </tr>`
         )
@@ -353,8 +354,11 @@
     });
 
     tableBody.addEventListener('click', async (e) => {
-      const action = e.target.dataset.action;
-      const id = e.target.dataset.id;
+      const button = e.target.closest('button[data-action]');
+      if (!button) return;
+      
+      const action = button.dataset.action;
+      const id = button.dataset.id;
       if (!action || !id) return;
 
       if (action === 'edit') {
