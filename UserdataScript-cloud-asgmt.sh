@@ -14,7 +14,7 @@ npm install
 npm install aws-sdk
 
 # Export database configuration
-export APP_DB_HOST=$(curl http://169.254.169.254/latest/meta-data/local-ipv4)
+export APP_DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
 export APP_DB_USER=nodeapp
 export APP_DB_PASSWORD=student12
 export APP_DB_NAME=STUDENTS
