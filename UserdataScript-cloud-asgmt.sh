@@ -18,14 +18,14 @@ export DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
 export DB_USER=nodeapp
 export DB_PASSWORD=student12
 export DB_NAME=STUDENTS
-export PORT=80
+export APP_PORT=80
 
 # Start the application
-npm start &
+sudo npm start &
 
 # Create startup script for persistence across reboots
 echo '#!/bin/bash -xe
 cd /home/ubuntu/cloud_asgmt
-export PORT=80
-npm start' > /etc/rc.local
+export APP_PORT=80
+sudo npm start' > /etc/rc.local
 sudo chmod +x /etc/rc.local

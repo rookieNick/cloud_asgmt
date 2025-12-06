@@ -108,6 +108,8 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found.' });
 });
 
-app.listen(PORT, () => {
-  console.log(`Server listening on http://localhost:${PORT}`);
+// set port, listen for requests
+const app_port = process.env.APP_PORT ||3000
+app.listen(app_port, () => {
+    console.log(`Server is running on port ${app_port}.`);
 });
