@@ -1,17 +1,17 @@
 #!/bin/bash -xe
-apt update -y
-apt install nodejs npm mysql-client git -y
+sudo apt update -y
+sudo apt install nodejs npm mysql-client git -y
 
 # Create app directory
-mkdir -p /home/ubuntu/cloud_asgmt
+sudo mkdir -p /home/ubuntu/cloud_asgmt
 cd /home/ubuntu/cloud_asgmt
 
 # Clone your project
-git clone https://github.com/rookieNick/cloud_asgmt.git .
+sudo git clone https://github.com/rookieNick/cloud_asgmt.git .
 
 # Install dependencies
-npm install
-npm install aws-sdk
+sudo npm install
+sudo npm install aws-sdk
 
 # Export database configuration
 export APP_DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
