@@ -4,7 +4,6 @@ const path = require('path');
 const pool = require('./db');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -109,7 +108,7 @@ app.use((req, res) => {
 });
 
 // set port, listen for requests
-const app_port = process.env.APP_PORT ||3000
+const app_port = process.env.APP_PORT || 3000;
 app.listen(app_port, () => {
     console.log(`Server is running on port ${app_port}.`);
 });
