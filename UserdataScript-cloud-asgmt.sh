@@ -14,11 +14,11 @@ sudo npm install
 sudo npm install aws-sdk
 
 # Export database configuration
-export APP_DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
-export APP_DB_USER=nodeapp
-export APP_DB_PASSWORD=student12
-export APP_DB_NAME=STUDENTS
-export APP_PORT=80
+export DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
+export DB_USER=nodeapp
+export DB_PASSWORD=student12
+export DB_NAME=STUDENTS
+export PORT=80
 
 # Start the application
 npm start &
@@ -26,6 +26,6 @@ npm start &
 # Create startup script for persistence across reboots
 echo '#!/bin/bash -xe
 cd /home/ubuntu/cloud_asgmt
-export APP_PORT=80
+export PORT=80
 npm start' > /etc/rc.local
-chmod +x /etc/rc.local
+sudo chmod +x /etc/rc.local
