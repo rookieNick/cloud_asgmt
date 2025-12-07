@@ -6,7 +6,7 @@ class Student {
   static async getAll() {
     const pool = await poolPromise;
     const [students] = await pool.query(
-      'SELECT id, name, address, city, state, email, phone, profile_image FROM students ORDER BY id DESC'
+      'SELECT id, name, address, city, state, email, phone, enrollment_date, profile_image FROM students ORDER BY id DESC'
     );
     return students;
   }
@@ -14,10 +14,10 @@ class Student {
   // Create a new student
   static async create(studentData, profileImageUrl = null) {
     const pool = await poolPromise;
-    const { name, address, city, state, email, phone } = studentData;
+    const { name, address, city, state, email, phone, enrollment_date } = studentData;
     const [result] = await pool.query(
-      'INSERT INTO students (name, address, city, state, email, phone, profile_image) VALUES (?, ?, ?, ?, ?, ?, ?)',
-      [name, address, city, state, email, phone, profileImageUrl]
+      'INSERT INTO students (name, address, city, state, email, phone, enrollment_date, profile_image) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+      [name, address, city, state, email, phone, enrollment_date, profileImageUrl]
     );
     return {
       id: result.insertId,
@@ -27,6 +27,7 @@ class Student {
       state,
       email,
       phone,
+      enrollment_date,
       profile_image: profileImageUrl
     };
   }
@@ -36,7 +37,7 @@ class Student {
     const pool = await poolPromise;
     const fields = [];
     const values = [];
-    const allowed = ['name', 'address', 'city', 'state', 'email', 'phone'];
+    const allowed = ['name', 'address', 'city', 'state', 'email', 'phone', 'enrollment_date'];
 
     // Build dynamic query based on provided fields
     allowed.forEach(field => {
@@ -67,7 +68,7 @@ class Student {
 
     // Fetch and return updated student
     const [updatedStudent] = await pool.query(
-      'SELECT id, name, address, city, state, email, phone, profile_image FROM students WHERE id = ?',
+      'SELECT id, name, address, city, state, email, phone, enrollment_date, profile_image FROM students WHERE id = ?',
       [id]
     );
     return updatedStudent[0];

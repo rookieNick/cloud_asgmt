@@ -83,6 +83,7 @@
               <th>State</th>
               <th>Email</th>
               <th>Phone</th>
+              <th>Enrollment Date</th>
               <th class="actions-col">Actions</th>
             </tr>
           </thead>
@@ -110,36 +111,49 @@
 
         <form id="student-form" class="stacked-form" autocomplete="off">
           <input type="hidden" id="student-id" />
-          <label>
-            Name
-            <input id="name" name="name" type="text" required />
-          </label>
-          <label>
-            Address
-            <input id="address" name="address" type="text" required />
-          </label>
-          <label>
-            City
-            <input id="city" name="city" type="text" required />
-          </label>
-          <label>
-            State
-            <input id="state" name="state" type="text" required />
-          </label>
-          <label>
-            Email
-            <input id="email" name="email" type="email" required />
-          </label>
-          <label>
-            Phone
-            <input id="phone" name="phone" type="text" required />
-          </label>
-          <label>
-            Profile Image (Optional)
-            <input id="profile_image" name="profile_image" type="file" accept="image/*" />
-            <small>Max 5MB - JPEG, PNG, GIF, WebP</small>
-            <div id="image-preview" class="image-preview-container"></div>
-          </label>
+          
+          <div class="form-section-left">
+            <label>
+              Name
+              <input id="name" name="name" type="text" required />
+            </label>
+            <label>
+              Address
+              <input id="address" name="address" type="text" required />
+            </label>
+            <label>
+              City
+              <input id="city" name="city" type="text" required />
+            </label>
+            <label>
+              State
+              <input id="state" name="state" type="text" required />
+            </label>
+          </div>
+
+          <div class="form-section-right">
+            <label>
+              Email
+              <input id="email" name="email" type="email" required />
+            </label>
+            <label>
+              Phone
+              <input id="phone" name="phone" type="text" required />
+            </label>
+            <label>
+              Enrollment Date
+              <input id="enrollment_date" name="enrollment_date" type="date" required />
+            </label>
+            <div class="image-section">
+              <label>
+                Profile Image (Optional)
+                <input id="profile_image" name="profile_image" type="file" accept="image/*" />
+                <small>Max 5MB - JPEG, PNG, GIF, WebP</small>
+                <div id="image-preview" class="image-preview-container"></div>
+              </label>
+            </div>
+          </div>
+
           <div class="form-actions">
             <button id="cancel-edit" class="button ghost" type="button">Cancel</button>
             <button id="submit-btn" class="button primary" type="submit">Add Student</button>
@@ -174,7 +188,7 @@
     const clearFiltersBtn = document.getElementById('clear-filters');
     const filterInputs = document.querySelectorAll('.filter-input');
 
-    const fields = ['name', 'address', 'city', 'state', 'email', 'phone'];
+    const fields = ['name', 'address', 'city', 'state', 'email', 'phone', 'enrollment_date'];
     
     // Store all students for filtering
     let allStudents = [];
@@ -295,7 +309,7 @@
 
     const renderStudents = (students) => {
       if (!students.length) {
-        tableBody.innerHTML = '<tr><td colspan="9">No students found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10">No students found.</td></tr>';
         return;
       }
 
@@ -303,16 +317,17 @@
         .map(
           (s) => `
             <tr>
-              <td>${s.id}</td>
+              <td>${s.id || 'None'}</td>
               <td>
-                ${s.profile_image ? `<img src="${s.profile_image}" alt="${s.name}" class="table-thumbnail" title="View profile">` : '<span class="no-image">N/A</span>'}
+                ${s.profile_image ? `<img src="${s.profile_image}" alt="${s.name}" class="table-thumbnail" title="View profile">` : '<span class="no-image">None</span>'}
               </td>
-              <td>${s.name}</td>
-              <td>${s.address}</td>
-              <td>${s.city}</td>
-              <td>${s.state}</td>
-              <td>${s.email}</td>
-              <td>${s.phone}</td>
+              <td>${s.name || 'None'}</td>
+              <td>${s.address || 'None'}</td>
+              <td>${s.city || 'None'}</td>
+              <td>${s.state || 'None'}</td>
+              <td>${s.email || 'None'}</td>
+              <td>${s.phone || 'None'}</td>
+              <td>${s.enrollment_date ? new Date(s.enrollment_date).toISOString().split('T')[0] : 'None'}</td>
               <td class="actions-col">
                 <button class="icon-btn edit-btn" data-action="edit" data-id="${s.id}" title="Edit"><i class="fas fa-edit"></i></button>
                 <button class="icon-btn delete-btn" data-action="delete" data-id="${s.id}" title="Delete"><i class="fas fa-trash"></i></button>
@@ -332,7 +347,7 @@
         filterStudents();
       } catch (err) {
         console.error(err);
-        tableBody.innerHTML = '<tr><td colspan="8">Error loading students.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="10">Error loading students.</td></tr>';
         setStatus('Could not load students.', 'danger');
       }
     };

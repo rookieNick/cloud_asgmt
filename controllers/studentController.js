@@ -15,8 +15,8 @@ const getAllStudents = async (_req, res) => {
 
 // Create a new student with optional profile image
 const createStudent = async (req, res) => {
-  const { name, address, city, state, email, phone } = req.body;
-  const required = { name, address, city, state, email, phone };
+  const { name, address, city, state, email, phone, enrollment_date } = req.body;
+  const required = { name, address, city, state, email, phone, enrollment_date };
   const missing = Object.entries(required)
     .filter(([, value]) => !value)
     .map(([key]) => key);
@@ -48,8 +48,8 @@ const createStudent = async (req, res) => {
 
 // Update a student (with optional profile image update)
 const updateStudent = async (req, res) => {
-  const { name, address, city, state, email, phone } = req.body;
-  const allowed = { name, address, city, state, email, phone };
+  const { name, address, city, state, email, phone, enrollment_date } = req.body;
+  const allowed = { name, address, city, state, email, phone, enrollment_date };
   const providedFields = Object.fromEntries(
     Object.entries(allowed).filter(([, value]) => value !== undefined)
   );
