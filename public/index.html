@@ -76,6 +76,7 @@
           <thead>
             <tr>
               <th>ID</th>
+              <th>Photo</th>
               <th>Name</th>
               <th>Address</th>
               <th>City</th>
@@ -87,7 +88,7 @@
           </thead>
           <tbody id="students-body">
             <tr>
-              <td colspan="8">Loading...</td>
+              <td colspan="9">Loading...</td>
             </tr>
           </tbody>
         </table>
@@ -133,6 +134,12 @@
             Phone
             <input id="phone" name="phone" type="text" required />
           </label>
+          <label>
+            Profile Image (Optional)
+            <input id="profile_image" name="profile_image" type="file" accept="image/*" />
+            <small>Max 5MB - JPEG, PNG, GIF, WebP</small>
+            <div id="image-preview" class="image-preview-container"></div>
+          </label>
           <div class="form-actions">
             <button id="cancel-edit" class="button ghost" type="button">Cancel</button>
             <button id="submit-btn" class="button primary" type="submit">Add Student</button>
@@ -153,6 +160,8 @@
     const addNewBtn = document.getElementById('add-new');
     const tableBody = document.getElementById('students-body');
     const studentIdInput = document.getElementById('student-id');
+    const profileImageInput = document.getElementById('profile_image');
+    const imagePreviewContainer = document.getElementById('image-preview');
     
     // Modal elements
     const modalOverlay = document.getElementById('modal-overlay');
@@ -196,7 +205,26 @@
       studentIdInput.value = '';
       formTitle.textContent = 'Add Student';
       submitBtn.textContent = 'Add Student';
+      imagePreviewContainer.innerHTML = '';
     };
+
+    // Profile image preview
+    profileImageInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      imagePreviewContainer.innerHTML = '';
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          const img = document.createElement('img');
+          img.src = event.target.result;
+          img.style.maxWidth = '150px';
+          img.style.marginTop = '10px';
+          img.style.borderRadius = '4px';
+          imagePreviewContainer.appendChild(img);
+        };
+        reader.readAsDataURL(file);
+      }
+    });
 
     const startEdit = (student) => {
       fields.forEach((key) => {
@@ -205,6 +233,24 @@
       studentIdInput.value = student.id;
       formTitle.textContent = 'Edit Student';
       submitBtn.textContent = 'Update Student';
+      
+      // Show existing image if available
+      imagePreviewContainer.innerHTML = '';
+      if (student.profile_image) {
+        const img = document.createElement('img');
+        img.src = student.profile_image;
+        img.style.maxWidth = '150px';
+        img.style.marginTop = '10px';
+        img.style.borderRadius = '4px';
+        const label = document.createElement('p');
+        label.textContent = 'Current image:';
+        label.style.fontSize = '12px';
+        label.style.marginTop = '10px';
+        label.style.marginBottom = '5px';
+        imagePreviewContainer.appendChild(label);
+        imagePreviewContainer.appendChild(img);
+      }
+      
       openModal();
     };
 
@@ -249,7 +295,7 @@
 
     const renderStudents = (students) => {
       if (!students.length) {
-        tableBody.innerHTML = '<tr><td colspan="8">No students found.</td></tr>';
+        tableBody.innerHTML = '<tr><td colspan="9">No students found.</td></tr>';
         return;
       }
 
@@ -258,6 +304,9 @@
           (s) => `
             <tr>
               <td>${s.id}</td>
+              <td>
+                ${s.profile_image ? `<img src="${s.profile_image}" alt="${s.name}" class="table-thumbnail" title="View profile">` : '<span class="no-image">N/A</span>'}
+              </td>
               <td>${s.name}</td>
               <td>${s.address}</td>
               <td>${s.city}</td>
@@ -267,6 +316,7 @@
               <td class="actions-col">
                 <button class="icon-btn edit-btn" data-action="edit" data-id="${s.id}" title="Edit"><i class="fas fa-edit"></i></button>
                 <button class="icon-btn delete-btn" data-action="delete" data-id="${s.id}" title="Delete"><i class="fas fa-trash"></i></button>
+                ${s.profile_image ? `<button class="icon-btn delete-img-btn" data-action="delete-image" data-id="${s.id}" title="Delete image"><i class="fas fa-image"></i></button>` : ''}
               </td>
             </tr>`
         )
@@ -289,7 +339,18 @@
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
-      const payload = Object.fromEntries(fields.map((key) => [key, document.getElementById(key).value.trim()]));
+      
+      const formData = new FormData();
+      fields.forEach((key) => {
+        formData.append(key, document.getElementById(key).value.trim());
+      });
+      
+      // Add profile image if selected
+      const fileInput = document.getElementById('profile_image');
+      if (fileInput.files.length > 0) {
+        formData.append('profile_image', fileInput.files[0]);
+      }
+      
       const id = studentIdInput.value;
       const url = id ? '/api/students/' + id : '/api/students';
       const method = id ? 'PUT' : 'POST';
@@ -297,8 +358,8 @@
       try {
         const res = await fetch(url, {
           method,
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+          body: formData
+          // Don't set Content-Type header - browser will set it with boundary
         });
         const data = await res.json();
         if (!res.ok) throw new Error(data.error || 'Request failed');
@@ -362,19 +423,11 @@
       if (!action || !id) return;
 
       if (action === 'edit') {
-        // find existing data in table
-        const row = e.target.closest('tr');
-        const cells = row.querySelectorAll('td');
-        const student = {
-          id,
-          name: cells[1].textContent,
-          address: cells[2].textContent,
-          city: cells[3].textContent,
-          state: cells[4].textContent,
-          email: cells[5].textContent,
-          phone: cells[6].textContent
-        };
-        startEdit(student);
+        // Find existing data from allStudents array
+        const student = allStudents.find(s => s.id == id);
+        if (student) {
+          startEdit(student);
+        }
       }
 
       if (action === 'delete') {
@@ -388,6 +441,20 @@
         } catch (err) {
           console.error(err);
           setStatus(err.message || 'Could not delete student.', 'danger');
+        }
+      }
+
+      if (action === 'delete-image') {
+        if (!confirm('Delete this profile image?')) return;
+        try {
+          const res = await fetch('/api/students/' + id + '/profile-image', { method: 'DELETE' });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || 'Delete failed');
+          setStatus('Image deleted.');
+          fetchStudents();
+        } catch (err) {
+          console.error(err);
+          setStatus(err.message || 'Could not delete image.', 'danger');
         }
       }
     });

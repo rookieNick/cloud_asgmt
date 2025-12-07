@@ -20,6 +20,10 @@ export DB_PASSWORD=student12
 export DB_NAME=STUDENTS
 export APP_PORT=80
 
+# Export AWS S3 configuration for profile images
+export AWS_REGION=us-east-1
+export S3_BUCKET_NAME=your-s3-bucket-name
+
 # Start the application
 sudo npm start &
 

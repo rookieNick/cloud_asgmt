@@ -5,9 +5,9 @@ const AWS = require('aws-sdk');
 // Initialize config with defaults
 let dbConfig = {
   host: process.env.DB_HOST || 'localhost',
-  user: process.env.DB_USER || 'nodeapp',
-  password: process.env.DB_PASSWORD || 'student12',
-  database: process.env.DB_NAME || 'STUDENTS',
+  user: process.env.DB_USER || 'root',
+  password: process.env.DB_PASSWORD || 'admin',
+  database: process.env.DB_NAME || 'cloud',
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
