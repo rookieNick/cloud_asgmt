@@ -37,15 +37,23 @@ const s3Service = {
 
     try {
       // Extract the key from the S3 URL
-      const bucketName = process.env.S3_BUCKET_NAME;
-      const key = fileUrl.split(`${bucketName}/`)[1];
+      // URL format: https://bucketname.s3.amazonaws.com/student-profiles/5-1765094615122.png
+      // We need to extract everything after the first "/" after the domain
+      const url = new URL(fileUrl);
+      const key = url.pathname.substring(1); // Remove leading slash
 
-      if (!key) return;
+      if (!key) {
+        console.warn('Could not extract S3 key from URL:', fileUrl);
+        return;
+      }
 
       const params = {
-        Bucket: bucketName,
+        Bucket: process.env.S3_BUCKET_NAME,
         Key: key
       };
+
+      // log bucket and key for debugging
+      console.log(`Deleting from bucket: ${params.Bucket}, key: ${params.Key}`);
 
       await s3.deleteObject(params).promise();
       console.log(`Deleted S3 file: ${key}`);
