@@ -1,6 +1,5 @@
 require('dotenv').config();
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 
 const s3 = new AWS.S3({
   region: process.env.AWS_REGION || 'us-east-1'
@@ -12,7 +11,8 @@ const s3Service = {
     if (!file) return null;
 
     const fileExtension = file.originalname.split('.').pop();
-    const fileName = `student-profiles/${studentId}-${uuidv4()}.${fileExtension}`;
+    const timestamp = Date.now();
+    const fileName = `student-profiles/${studentId}-${timestamp}.${fileExtension}`;
 
     const params = {
       Bucket: process.env.S3_BUCKET_NAME,
