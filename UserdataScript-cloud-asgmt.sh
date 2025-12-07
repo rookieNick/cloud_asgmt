@@ -13,17 +13,22 @@ sudo git clone https://github.com/rookieNick/cloud_asgmt.git .
 sudo npm install
 sudo npm install aws-sdk
 
-# Export database configuration
-export DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
-export DB_USER=nodeapp
-export DB_PASSWORD=student12
-export DB_NAME=STUDENTS
-export APP_PORT=80
+# Create .env file with database and application configuration
+sudo tee /home/ubuntu/cloud_asgmt/.env > /dev/null <<EOF
+DB_HOST=cloudasgmtdb.c9lwn3mv3tfg.us-east-1.rds.amazonaws.com
+DB_USER=nodeapp
+DB_PASSWORD=student12
+DB_NAME=STUDENTS
+APP_PORT=80
+AWS_REGION=us-east-1
+S3_BUCKET_NAME=cloudasgmtyeohs3
+EOF
 
-# Export AWS S3 configuration for profile images
-export AWS_REGION=us-east-1
-export S3_BUCKET_NAME=cloudasgmtyeohs3
+# Fix ownership and permissions
+sudo chown ubuntu:ubuntu /home/ubuntu/cloud_asgmt/.env
+sudo chmod 600 /home/ubuntu/cloud_asgmt/.env
 
-# Start the application
+# Start the application with sudo (required for port 80)
+cd /home/ubuntu/cloud_asgmt
 sudo npm start &
 
