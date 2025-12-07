@@ -15,6 +15,7 @@ sudo git clone https://github.com/rookieNick/cloud_asgmt.git .
 # Install dependencies
 sudo npm install
 sudo npm install aws-sdk
+sudo npm install @aws-sdk/client-sns
 
 # Create .env file with database and application configuration
 sudo tee /home/ubuntu/cloud_asgmt/.env > /dev/null <<EOF
@@ -25,6 +26,8 @@ DB_NAME=STUDENTS
 APP_PORT=80
 AWS_REGION=us-east-1
 S3_BUCKET_NAME=cloudasgmtyeohs3
+AWS_ACCOUNT_ID=328704324310
+SNS_TOPIC_NAME=studentdata
 EOF
 
 # Fix ownership and permissions

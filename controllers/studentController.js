@@ -1,5 +1,6 @@
 const Student = require('../models/Student');
 const s3Service = require('../services/s3Service');
+const snsService = require('../services/snsService');
 
 // Get all students
 const getAllStudents = async (_req, res) => {
@@ -34,6 +35,9 @@ const createStudent = async (req, res) => {
       newStudent.profile_image = profileImageUrl;
       await Student.update(newStudent.id, {}, profileImageUrl);
     }
+
+    // Send SNS email notification after successful student creation
+    await snsService.publishStudentNotification(newStudent);
 
     res.status(201).json(newStudent);
   } catch (err) {
