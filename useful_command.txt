@@ -1,0 +1,5 @@
+list port 80 process (so to terminate)
+sudo lsof -t -i :80
+
+kill process
+sudo kill -9 <PID>
