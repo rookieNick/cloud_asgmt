@@ -39,6 +39,7 @@
         
         <div class="filters-toggle">
           <button id="filters-toggle-btn" class="button ghost icon-btn" type="button"><i class="fas fa-sliders-h"></i> Filters</button>
+          <button id="generate-report-btn" class="button secondary" type="button"><i class="fas fa-file-chart-line"></i> Generate Report</button>
         </div>
       </div>
 
@@ -164,6 +165,31 @@
   </div>
 
 
+  <!-- Report Modal -->
+  <div id="report-modal-overlay" class="modal-overlay">
+    <div class="modal-content">
+      <section class="card modal-card">
+        <button id="close-report-modal" class="close-modal-btn">&times;</button>
+        <header class="card-header">
+          <div>
+            <p class="eyebrow">Report</p>
+            <h2>Monthly Enrollment Report</h2>
+          </div>
+        </header>
+
+        <div id="report-status" class="alert" hidden></div>
+
+        <div id="report-content" class="report-content">
+          <p style="text-align: center; padding: 20px;">Loading report...</p>
+        </div>
+
+        <div class="form-actions">
+          <button id="close-report-btn" class="button primary" type="button">Close</button>
+          <button id="export-report-btn" class="button ghost" type="button"><i class="fas fa-download"></i> Export CSV</button>
+        </div>
+      </section>
+    </div>
+  </div>
 
   <script>
     const statusEl = document.getElementById('status');
@@ -180,6 +206,15 @@
     // Modal elements
     const modalOverlay = document.getElementById('modal-overlay');
     const closeModalBtn = document.getElementById('close-modal');
+    
+    // Report modal elements
+    const reportModalOverlay = document.getElementById('report-modal-overlay');
+    const closeReportModalBtn = document.getElementById('close-report-modal');
+    const generateReportBtn = document.getElementById('generate-report-btn');
+    const reportContent = document.getElementById('report-content');
+    const reportStatus = document.getElementById('report-status');
+    const exportReportBtn = document.getElementById('export-report-btn');
+    let reportData = []; // Store report data for export
     
     // Search and filter elements
     const globalSearchInput = document.getElementById('global-search');
@@ -266,6 +301,130 @@
       }
       
       openModal();
+    };
+
+    // Report Modal Logic
+    const openReportModal = () => {
+      reportModalOverlay.classList.add('open');
+      document.body.style.overflow = 'hidden';
+    };
+
+    const closeReportModal = () => {
+      reportModalOverlay.classList.remove('open');
+      document.body.style.overflow = '';
+      reportContent.innerHTML = '';
+      reportData = [];
+    };
+
+    const setReportStatus = (message, type = 'success') => {
+      reportStatus.textContent = message;
+      reportStatus.className = 'alert ' + (type === 'success' ? 'success' : 'danger');
+      reportStatus.hidden = false;
+    };
+
+    const renderReport = (data) => {
+      if (!data || data.length === 0) {
+        reportContent.innerHTML = '<p style="text-align: center; padding: 20px;">No enrollment data found for the last 30 days.</p>';
+        return;
+      }
+
+      reportData = data; // Store for export
+      const html = `
+        <div style="overflow-x: auto;">
+          <table class="data-table" style="width: 100%;">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Enrollment Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${data.map(student => `
+                <tr>
+                  <td>${student.id}</td>
+                  <td>${student.name}</td>
+                  <td>${student.email}</td>
+                  <td>${new Date(student.enrollment_date).toISOString().split('T')[0]}</td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+        <div style="margin-top: 20px; padding: 15px; background: #f5f5f5; border-radius: 4px;">
+          <p><strong>Total Enrollments (Last 30 Days):</strong> ${data.length}</p>
+          <p><strong>Report Generated:</strong> ${new Date().toLocaleString()}</p>
+        </div>
+      `;
+      reportContent.innerHTML = html;
+    };
+
+    const generateReport = async () => {
+      try {
+        openReportModal();
+        reportContent.innerHTML = '<p style="text-align: center; padding: 20px;">Loading report...</p>';
+        reportStatus.hidden = true;
+
+        // Call the Lambda Function URL
+        const lambdaUrl = 'https://g7hntzw3tn3qgd6oadrs37yjby0vsvmi.lambda-url.us-east-1.on.aws/';
+        
+        const response = await fetch(lambdaUrl, {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json'
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+
+        if (result.status === 'success' && result.data) {
+          renderReport(result.data);
+          setReportStatus(`Report generated successfully. Found ${result.enrollmentCount} enrollments.`, 'success');
+        } else {
+          throw new Error(result.message || 'Failed to generate report');
+        }
+      } catch (error) {
+        console.error('Error generating report:', error);
+        reportContent.innerHTML = '<p style="text-align: center; padding: 20px; color: red;">Error generating report. Please try again.</p>';
+        setReportStatus(error.message || 'Failed to generate report', 'danger');
+      }
+    };
+
+    const exportReportAsCSV = () => {
+      if (!reportData || reportData.length === 0) {
+        alert('No data to export');
+        return;
+      }
+
+      // Create CSV content
+      const headers = ['ID', 'Name', 'Email', 'Enrollment Date'];
+      const rows = reportData.map(student => [
+        student.id,
+        `"${student.name}"`,
+        student.email,
+        new Date(student.enrollment_date).toISOString().split('T')[0]
+      ]);
+
+      const csvContent = [
+        headers.join(','),
+        ...rows.map(row => row.join(','))
+      ].join('\n');
+
+      // Create blob and download
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      const url = URL.createObjectURL(blob);
+      link.setAttribute('href', url);
+      link.setAttribute('download', `enrollment_report_${new Date().toISOString().split('T')[0]}.csv`);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
     };
 
     // Filtering Logic
@@ -404,10 +563,28 @@
       }
     });
 
+    // Report modal event listeners
+    generateReportBtn.addEventListener('click', generateReport);
+    closeReportModalBtn.addEventListener('click', closeReportModal);
+    document.getElementById('close-report-btn').addEventListener('click', closeReportModal);
+    exportReportBtn.addEventListener('click', exportReportAsCSV);
+
+    // Close report modal when clicking outside
+    reportModalOverlay.addEventListener('click', (e) => {
+      if (e.target === reportModalOverlay) {
+        closeReportModal();
+      }
+    });
+    
     // Close on Escape key
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape' && modalOverlay.classList.contains('open')) {
-        closeModal();
+      if (e.key === 'Escape') {
+        if (modalOverlay.classList.contains('open')) {
+          closeModal();
+        }
+        if (reportModalOverlay.classList.contains('open')) {
+          closeReportModal();
+        }
       }
     });
 

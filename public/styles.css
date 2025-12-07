@@ -391,6 +391,12 @@ h1 {
   color: #052e16;
 }
 
+.button.secondary {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+  border: none;
+  color: #fff;
+}
+
 .button.danger {
   background: linear-gradient(135deg, #ef4444, #dc2626);
   border: none;
@@ -566,6 +572,48 @@ input[type="file"]::-webkit-file-upload-button {
 
 input[type="file"]::-webkit-file-upload-button:hover {
   background: var(--accent-strong);
+}
+
+.report-content {
+  margin: 20px 0;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.report-content table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.report-content table thead {
+  background: rgba(17, 24, 39, 0.8);
+  position: sticky;
+  top: 0;
+}
+
+.report-content table th,
+.report-content table td {
+  padding: 12px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+
+.report-content table th {
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+}
+
+.report-content table tbody tr:hover {
+  background: rgba(34, 197, 94, 0.05);
+}
+
+.filters-toggle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
 }
 
 small {
