@@ -1,9 +1,10 @@
-const pool = require('../config/database');
+const poolPromise = require('../config/database');
 const s3Service = require('../services/s3Service');
 
 class Student {
   // Fetch all students
   static async getAll() {
+    const pool = await poolPromise;
     const [students] = await pool.query(
       'SELECT id, name, address, city, state, email, phone, profile_image FROM students ORDER BY id DESC'
     );
@@ -12,6 +13,7 @@ class Student {
 
   // Create a new student
   static async create(studentData, profileImageUrl = null) {
+    const pool = await poolPromise;
     const { name, address, city, state, email, phone } = studentData;
     const [result] = await pool.query(
       'INSERT INTO students (name, address, city, state, email, phone, profile_image) VALUES (?, ?, ?, ?, ?, ?, ?)',
@@ -31,6 +33,7 @@ class Student {
 
   // Update a student by ID (supports partial updates)
   static async update(id, studentData, profileImageUrl = null) {
+    const pool = await poolPromise;
     const fields = [];
     const values = [];
     const allowed = ['name', 'address', 'city', 'state', 'email', 'phone'];
@@ -72,6 +75,7 @@ class Student {
 
   // Delete a student by ID
   static async delete(id) {
+    const pool = await poolPromise;
     // Get student to retrieve profile image URL
     const [student] = await pool.query(
       'SELECT profile_image FROM students WHERE id = ?',
@@ -97,6 +101,7 @@ class Student {
 
   // Delete only profile image
   static async deleteProfileImage(id) {
+    const pool = await poolPromise;
     const [student] = await pool.query(
       'SELECT profile_image FROM students WHERE id = ?',
       [id]
