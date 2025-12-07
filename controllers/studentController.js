@@ -25,24 +25,14 @@ const createStudent = async (req, res) => {
   }
 
   try {
-    let profileImageUrl = null;
-
-    // If file is uploaded, upload to S3
-    if (req.file) {
-      // Create a temporary student ID for S3 path (will be replaced after DB insert)
-      const tempId = 'temp-' + Date.now();
-      profileImageUrl = await s3Service.uploadFile(req.file, tempId);
-    }
-
-    const newStudent = await Student.create(req.body, profileImageUrl);
+    // First create the student without image
+    const newStudent = await Student.create(req.body, null);
     
-    // If image was uploaded, update the S3 path with actual student ID
-    if (profileImageUrl) {
-      const oldUrl = profileImageUrl;
-      const newUrl = await s3Service.uploadFile(req.file, newStudent.id);
-      await s3Service.deleteFile(oldUrl);
-      newStudent.profile_image = newUrl;
-      await Student.update(newStudent.id, {}, newUrl);
+    // Then upload image if provided, using the actual student ID
+    if (req.file) {
+      const profileImageUrl = await s3Service.uploadFile(req.file, newStudent.id);
+      newStudent.profile_image = profileImageUrl;
+      await Student.update(newStudent.id, {}, profileImageUrl);
     }
 
     res.status(201).json(newStudent);

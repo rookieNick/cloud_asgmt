@@ -23,6 +23,7 @@ const s3Service = {
 
     try {
       const result = await s3.upload(params).promise();
+      console.log(`Uploaded file to S3: ${result.Location}`);
       return result.Location; // Returns the S3 URL
     } catch (err) {
       console.error('S3 upload error:', err);
