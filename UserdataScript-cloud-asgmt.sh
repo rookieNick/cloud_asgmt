@@ -1,6 +1,6 @@
 #!/bin/bash -xe
 cd ~
-rm -rf cloud_asgmt
+sudo rm -rf cloud_asgmt
 
 sudo apt update -y
 sudo apt install nodejs npm mysql-client git -y
