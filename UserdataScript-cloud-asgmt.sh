@@ -22,7 +22,7 @@ export APP_PORT=80
 
 # Export AWS S3 configuration for profile images
 export AWS_REGION=us-east-1
-export S3_BUCKET_NAME=your-s3-bucket-name
+export S3_BUCKET_NAME=cloudasgmtyeohs3
 
 # Start the application
 sudo npm start &
