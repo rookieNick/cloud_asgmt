@@ -23,6 +23,8 @@ app.use((req, res) => {
 
 // Set port and listen for requests
 const app_port = process.env.APP_PORT || 3000;
+console.log(`Environment APP_PORT: ${process.env.APP_PORT}`);
+console.log(`App Port: ${app_port}`);
 app.listen(app_port, () => {
     console.log(`Server is running on port ${app_port}.`);
 });

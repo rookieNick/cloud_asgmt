@@ -31,6 +31,10 @@ client.getSecretValue({ SecretId: secretName }, function(err, data) {
       dbConfig.password = secret.password || dbConfig.password;
       dbConfig.database = secret.db || dbConfig.database;
       console.log('Database credentials loaded from AWS Secrets Manager');
+      console.log('DB Host:', dbConfig.host);
+      console.log('DB User:', dbConfig.user);
+      console.log('DB Password:', dbConfig.password);
+      console.log('DB Name:', dbConfig.database);
     }
   }
 });
