@@ -18,8 +18,7 @@ const s3Service = {
       Bucket: process.env.S3_BUCKET_NAME,
       Key: fileName,
       Body: file.buffer,
-      ContentType: file.mimetype,
-      ACL: 'public-read'
+      ContentType: file.mimetype
     };
 
     try {
