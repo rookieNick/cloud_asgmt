@@ -1,6 +1,5 @@
 require('dotenv').config();
 const AWS = require('aws-sdk');
-const { v4: uuidv4 } = require('uuid');
 
 const s3 = new AWS.S3({
   region: process.env.AWS_REGION || 'us-east-1'
@@ -11,6 +10,7 @@ const s3Service = {
   uploadFile: async (file, studentId) => {
     if (!file) return null;
 
+    const { v4: uuidv4 } = await import('uuid');
     const fileExtension = file.originalname.split('.').pop();
     const fileName = `student-profiles/${studentId}-${uuidv4()}.${fileExtension}`;
 

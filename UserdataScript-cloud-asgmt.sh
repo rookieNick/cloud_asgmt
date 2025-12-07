@@ -27,9 +27,3 @@ export S3_BUCKET_NAME=cloudasgmtyeohs3
 # Start the application
 sudo npm start &
 
-# Create startup script for persistence across reboots
-echo '#!/bin/bash -xe
-cd /home/ubuntu/cloud_asgmt
-export APP_PORT=80
-sudo npm start' > /etc/rc.local
-sudo chmod +x /etc/rc.local
